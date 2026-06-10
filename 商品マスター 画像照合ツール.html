@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<!-- saved from url=(0106)file:///C:/Users/sugimori/Downloads/%E5%95%86%E5%93%81%E7%85%A7%E5%90%88%E3%83%84%E3%83%BC%E3%83%AB_7.html -->
+<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商品マスター 画像照合ツール</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Sans","Meiryo",sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
+.header{background:#fff;border-bottom:1px solid #e0e0dc;padding:16px 24px;display:flex;align-items:center;gap:12px}
+.header h1{font-size:16px;font-weight:600}
+.header span{font-size:12px;color:#888;background:#f0f0ec;padding:3px 10px;border-radius:99px}
+.reset-btn{margin-left:auto;font-size:13px;padding:6px 16px;border-radius:99px;border:1px solid #ccc;background:#fff;cursor:pointer}
+.reset-btn:hover{background:#fde8e8;border-color:#c03030;color:#c03030}
+.main{max-width:960px;margin:32px auto;padding:0 20px}
+.step{display:flex;gap:12px;align-items:flex-start;margin-bottom:20px}
+.step-num{width:26px;height:26px;border-radius:50%;border:1.5px solid #ccc;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#999;background:#fff}
+.step-num.done{border-color:#4a8c4a;color:#4a8c4a;background:#eaf3ea}
+.step-num.active{border-color:#3a7bbf;color:#3a7bbf;background:#e6f0fb}
+.step-body{flex:1}
+.step-label{font-size:14px;font-weight:600;margin-bottom:8px}
+.drop-zone{border:1.5px dashed #ccc;border-radius:12px;background:#fafaf8;padding:24px 20px;text-align:center;cursor:pointer;transition:all .15s}
+.drop-zone:hover{border-color:#3a7bbf;background:#eef5fb}
+.drop-zone.over{border-color:#3a7bbf;background:#deeefa}
+.drop-zone.done-zone{border-style:solid;border-color:#4a8c4a;background:#eaf3ea;cursor:default}
+.drop-zone .icon{font-size:28px;margin-bottom:6px}
+.drop-zone p{color:#666;font-size:13px;line-height:1.6}
+.drop-zone .strong{color:#1a1a1a;font-weight:600}
+.done-zone p,.done-zone .icon{color:#4a8c4a}
+input[type=file]{display:none}
+.col-config{margin-top:10px;display:none;gap:16px;flex-wrap:wrap;align-items:flex-end}
+.col-config label{font-size:12px;color:#666;display:block;margin-bottom:4px}
+.col-config input[type=number]{width:70px;padding:6px 10px;border:1px solid #ccc;border-radius:8px;font-size:14px}
+.reload-btn{padding:7px 16px;border:1px solid #ccc;border-radius:8px;background:#fff;cursor:pointer;font-size:13px}
+.reload-btn:hover{background:#f0f0ec}
+.status-hint{font-size:12px;color:#888;margin-top:6px;min-height:18px}
+.progress-wrap{background:#e8e8e4;border-radius:99px;height:6px;margin:10px 0}
+.progress-bar{height:6px;border-radius:99px;background:#4a8c4a;width:0%;transition:width .2s}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0}
+.stat{background:#fff;border-radius:10px;border:1px solid #e8e8e4;padding:14px 16px}
+.stat-label{font-size:12px;color:#888;margin-bottom:4px}
+.stat-value{font-size:24px;font-weight:600}
+.stat-value.green{color:#4a8c4a}
+.stat-value.red{color:#c03030}
+.stat-value.gray{color:#888}
+.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.filter-btn{font-size:13px;padding:6px 16px;border-radius:99px;border:1px solid #ccc;background:#fff;cursor:pointer}
+.filter-btn:hover{background:#f0f0ec}
+.filter-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.dl-btn{font-size:13px;padding:7px 18px;border-radius:99px;border:1px solid #4a8c4a;background:#eaf3ea;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-left:auto;font-weight:600;color:#2d6e2d}
+.dl-btn:hover{background:#d5ead5}
+.dl-btn:disabled{opacity:.4;cursor:not-allowed}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:10px;overflow:hidden;border:1px solid #e8e8e4}
+th{text-align:left;font-weight:600;font-size:12px;color:#888;padding:10px 12px;border-bottom:1px solid #e8e8e4;background:#fafaf8}
+td{padding:10px 12px;border-bottom:1px solid #f0f0ec;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.row-match{background:#fff}
+tr.row-nomatch{background:#fff8f8}
+.badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:99px;font-weight:600}
+.badge.match{background:#dff0df;color:#2d6e2d}
+.badge.nomatch{background:#fde8e8;color:#992020}
+.thumb{width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #e0e0dc;cursor:pointer}
+.thumb:hover{opacity:.8}
+.no-img{width:44px;height:44px;border-radius:8px;background:#fde8e8;border:1px solid #f5c0c0;display:flex;align-items:center;justify-content:center;font-size:18px}
+.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:999;cursor:zoom-out}
+.modal img{max-width:85vw;max-height:85vh;border-radius:12px}
+.hidden{display:none}
+#status-msg{font-size:13px;color:#666;margin-top:8px;min-height:18px}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>📦</div>
+  <h1>商品マスター 画像照合ツール</h1>
+  <span>Excelを基準に照合</span>
+  <button class="reset-btn" onclick="resetAll()">🔄 リセット</button>
+</div>
+<div class="main">
+
+  <div class="step">
+    <div class="step-num active" id="step1-num">1</div>
+    <div class="step-body">
+      <div class="step-label">Excelを読み込む（これが基準）</div>
+      <div class="drop-zone" id="xl-drop" onclick="xlClick()">
+        <div class="icon">📊</div>
+        <p><span class="strong">.xlsx / .xls をここにドロップ</span>、またはクリックして選択</p>
+      </div>
+      <input type="file" id="xl-input" accept=".xlsx,.xls">
+      <div class="col-config" id="col-config">
+        <div>
+          <label>A列（グループ1）の列番号</label>
+          <input type="number" id="col-g1" value="1" min="1" max="26">
+        </div>
+        <div>
+          <label>C列（グループ2）の列番号</label>
+          <input type="number" id="col-g2" value="3" min="1" max="26">
+        </div>
+        <div><button class="reload-btn" onclick="reloadExcel()">🔄 再読み込み</button></div>
+      </div>
+      <div class="status-hint" id="xl-status"></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num" id="step2-num">2</div>
+    <div class="step-body">
+      <div class="step-label">画像ZIPを読み込む（全メニュー分が入ったマスター）</div>
+      <div class="drop-zone" id="zip-drop" onclick="zipClick()">
+        <div class="icon">🗜️</div>
+        <p><span class="strong">ZIPファイルをここにドロップ</span>、またはクリックして選択</p>
+        <p style="font-size:12px;margin-top:4px;color:#aaa">構造：A列フォルダー → C列フォルダー → 画像</p>
+      </div>
+      <input type="file" id="zip-input" accept=".zip">
+      <div class="progress-wrap hidden" id="prog-wrap"><div class="progress-bar" id="prog-bar"></div></div>
+      <div id="status-msg"></div>
+    </div>
+  </div>
+
+  <div id="results-area" class="hidden">
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Excelのメニュー総数</div>
+        <div class="stat-value gray" id="s-total">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">画像あり（出力対象）</div>
+        <div class="stat-value green" id="s-match">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">画像なし（要確認）</div>
+        <div class="stat-value red" id="s-none">0</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button class="filter-btn active" onclick="filterTable(&#39;all&#39;,this)">すべて</button>
+      <button class="filter-btn" onclick="filterTable(&#39;match&#39;,this)">画像あり</button>
+      <button class="filter-btn" onclick="filterTable(&#39;nomatch&#39;,this)">画像なし</button>
+      <button class="dl-btn" id="dl-btn" onclick="buildZip()">⬇ 画像ありをZIPで保存</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:58px">画像</th>
+          <th>Excelのメニュー（A列 / C列）</th>
+          <th style="width:100px">結果</th>
+        </tr>
+      </thead>
+      <tbody id="result-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal hidden" id="modal" onclick="this.classList.add(&#39;hidden&#39;)">
+  <img id="modal-img" src="file:///C:/Users/sugimori/Downloads/%E5%95%86%E5%93%81%E7%85%A7%E5%90%88%E3%83%84%E3%83%BC%E3%83%AB_7.html" alt="プレビュー">
+</div>
+
+<script src="./商品マスター 画像照合ツール_files/xlsx.full.min.js.ダウンロード"></script>
+<script src="./商品マスター 画像照合ツール_files/jszip.min.js.ダウンロード"></script>
+<script>
+let excelProducts=[], allRows=[], xlFile=null;
+
+function norm(s){
+  if(!s) return '';
+  return String(s)
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+    .replace(/[・･]/g,'')
+    .replace(/[（(]/g,'(').replace(/[）)]/g,')')
+    .replace(/[＆&]/g,'&')
+    .replace(/\s+/g,'').toLowerCase();
+}
+
+function isMatch(a,b){ return norm(a)===norm(b); }
+function isImage(name){ return /\.(jpe?g|png|gif|webp|bmp)$/i.test(name); }
+
+function xlClick(){
+  if(!document.getElementById('xl-drop').classList.contains('done-zone'))
+    document.getElementById('xl-input').click();
+}
+function zipClick(){ document.getElementById('zip-input').click(); }
+
+function loadExcel(file){
+  if(!file) return;
+  xlFile=file;
+  const g1col=parseInt(document.getElementById('col-g1').value||1)-1;
+  const g2col=parseInt(document.getElementById('col-g2').value||3)-1;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      excelProducts=[];
+      const seen=new Set();
+      for(const row of data){
+        const g1=String(row[g1col]||'').trim();
+        const g2=String(row[g2col]||'').trim();
+        if(g1&&g2&&g1!=='商品グループ１'){
+          const key=g1+'|||'+g2;
+          if(!seen.has(key)){ seen.add(key); excelProducts.push({g1,g2}); }
+        }
+      }
+      const g1set=new Set(excelProducts.map(p=>p.g1));
+      document.getElementById('xl-status').textContent=
+        `読み込み完了：${excelProducts.length}メニュー（グループ1: ${[...g1set].join('・')}）`;
+      const zone=document.getElementById('xl-drop');
+      zone.classList.add('done-zone');
+      zone.innerHTML=`<div class="icon">✅</div><p><span class="strong">${file.name}</span>　${excelProducts.length}メニューを読み込みました</p>`;
+      document.getElementById('col-config').style.display='flex';
+      document.getElementById('step1-num').className='step-num done';
+      document.getElementById('step2-num').className='step-num active';
+    }catch(err){
+      document.getElementById('xl-status').textContent='Excelの読み込みに失敗しました。';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function reloadExcel(){ if(xlFile) loadExcel(xlFile); }
+
+function setupDrop(zoneId,inputId,handler){
+  const zone=document.getElementById(zoneId);
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('over');});
+  zone.addEventListener('dragleave',()=>zone.classList.remove('over'));
+  zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('over');handler(e.dataTransfer.files[0]);});
+  document.getElementById(inputId).addEventListener('change',e=>{handler(e.target.files[0]);e.target.value='';});
+}
+setupDrop('xl-drop','xl-input',loadExcel);
+setupDrop('zip-drop','zip-input',handleZip);
+
+async function handleZip(file){
+  if(!file) return;
+  if(!excelProducts.length){
+    document.getElementById('status-msg').textContent='先にExcelを読み込んでください。';
+    return;
+  }
+  const msg=document.getElementById('status-msg');
+  document.getElementById('prog-wrap').classList.remove('hidden');
+  const progBar=document.getElementById('prog-bar');
+  progBar.style.width='0%';
+  msg.textContent='ZIPを読み込み中...';
+
+  const zipZone=document.getElementById('zip-drop');
+  zipZone.classList.add('done-zone');
+  zipZone.innerHTML=`<div class="icon">✅</div><p><span class="strong">${file.name}</span> を読み込みました</p>`;
+
+  try{
+    const zip=await JSZip.loadAsync(file);
+
+    // ZIPの全画像をフォルダー構造でマップ化
+    // key: norm(g1)+'|||'+norm(g2) → [{path,entry}, ...]
+    const zipFolderMap=new Map();
+    zip.forEach((path,entry)=>{
+      if(entry.dir||!isImage(path)) return;
+      const parts=path.split('/').filter(Boolean);
+      if(parts.length<2) return;
+      const g2f=parts[parts.length-2];
+      const g1f=parts.length>=3?parts[parts.length-3]:'';
+      const key=norm(g1f)+'|||'+norm(g2f);
+      if(!zipFolderMap.has(key)) zipFolderMap.set(key,[]);
+      zipFolderMap.get(key).push({path,entry,g1f,g2f});
+    });
+
+    allRows=[];
+    const total=excelProducts.length;
+
+    for(let i=0;i<total;i++){
+      const {g1,g2}=excelProducts[i];
+      progBar.style.width=Math.round((i+1)/total*100)+'%';
+
+      // ExcelのA列・C列でZIPを検索
+      const key=norm(g1)+'|||'+norm(g2);
+      const found=zipFolderMap.get(key)||null;
+
+      let imgUrl=null;
+      if(found&&found.length>0){
+        try{const blob=await found[0].entry.async('blob');imgUrl=URL.createObjectURL(blob);}catch(e){}
+      }
+
+      allRows.push({
+        g1, g2,
+        status: found?'match':'nomatch',
+        images: found||[],
+        imgUrl
+      });
+    }
+
+    updateStats();
+    renderTable('all');
+    document.getElementById('results-area').classList.remove('hidden');
+    const mc=allRows.filter(r=>r.status==='match').length;
+    const nc=allRows.filter(r=>r.status==='nomatch').length;
+    msg.textContent=`照合完了：${total}メニュー中 画像あり${mc}件 / 画像なし${nc}件`;
+    document.getElementById('step2-num').className='step-num done';
+  }catch(e){
+    msg.textContent='ZIPの読み込みに失敗しました。';
+    console.error(e);
+  }
+}
+
+function updateStats(){
+  document.getElementById('s-total').textContent=allRows.length;
+  document.getElementById('s-match').textContent=allRows.filter(r=>r.status==='match').length;
+  document.getElementById('s-none').textContent=allRows.filter(r=>r.status==='nomatch').length;
+}
+
+function filterTable(type,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable(type);
+}
+
+function renderTable(filter){
+  const rows=filter==='all'?allRows:allRows.filter(r=>r.status===filter);
+  document.getElementById('result-tbody').innerHTML=rows.map(r=>{
+    const thumb=r.imgUrl
+      ?`<img src="${r.imgUrl}" class="thumb" alt="preview" onclick="showModal('${r.imgUrl}')">`
+      :`<div class="no-img">❌</div>`;
+    const badge=r.status==='match'
+      ?`<span class="badge match">✓ 画像あり<br><span style="font-weight:400">${r.images.length}枚</span></span>`
+      :`<span class="badge nomatch">✗ 画像なし</span>`;
+    const rowClass=r.status==='match'?'row-match':'row-nomatch';
+    return `<tr class="${rowClass}">
+      <td>${thumb}</td>
+      <td>
+        <span style="font-size:12px;color:#888">${r.g1} /</span>
+        <span style="font-weight:600"> ${r.g2}</span>
+      </td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('');
+}
+
+function showModal(url){
+  document.getElementById('modal-img').src=url;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+async function buildZip(){
+  const btn=document.getElementById('dl-btn');
+  btn.disabled=true; btn.textContent='⏳ 作成中...';
+  const matched=allRows.filter(r=>r.status==='match');
+  const out=new JSZip();
+  for(const r of matched){
+    for(const img of r.images){
+      try{
+        const data=await img.entry.async('arraybuffer');
+        out.file(img.path, data);
+      }catch(e){}
+    }
+  }
+  const blob=await out.generateAsync({type:'blob'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='照合済み画像.zip';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  btn.disabled=false; btn.textContent='⬇ 画像ありをZIPで保存';
+}
+
+function resetAll(){
+  excelProducts=[]; allRows=[]; xlFile=null;
+  const xlZone=document.getElementById('xl-drop');
+  xlZone.className='drop-zone';
+  xlZone.innerHTML=`<div class="icon">📊</div><p><span class="strong">.xlsx / .xls をここにドロップ</span>、またはクリックして選択</p>`;
+  document.getElementById('xl-status').textContent='';
+  document.getElementById('col-config').style.display='none';
+  document.getElementById('xl-input').value='';
+  const zipZone=document.getElementById('zip-drop');
+  zipZone.className='drop-zone';
+  zipZone.innerHTML=`<div class="icon">🗜️</div><p><span class="strong">ZIPファイルをここにドロップ</span>、またはクリックして選択</p><p style="font-size:12px;margin-top:4px;color:#aaa">構造：A列フォルダー → C列フォルダー → 画像</p>`;
+  document.getElementById('zip-input').value='';
+  document.getElementById('status-msg').textContent='';
+  document.getElementById('prog-wrap').classList.add('hidden');
+  document.getElementById('prog-bar').style.width='0%';
+  document.getElementById('results-area').classList.add('hidden');
+  document.getElementById('result-tbody').innerHTML='';
+  document.getElementById('step1-num').className='step-num active';
+  document.getElementById('step2-num').className='step-num';
+}
+</script>
+
+
+</body></html>
